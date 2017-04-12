@@ -426,6 +426,21 @@
               <FileType>1</FileType>
               <FilePath>.\stm32f10x_it.c</FilePath>
             </File>
+            <File>
+              <FileName>circ_buf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\circ_buf.c</FilePath>
+            </File>
+            <File>
+              <FileName>serial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\serial.c</FilePath>
+            </File>
+            <File>
+              <FileName>shell.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\shell.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -470,6 +485,11 @@
               <FileName>stm32f10x_usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\FWlib\SRC\stm32f10x_usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FWlib\SRC\stm32f10x_dma.c</FilePath>
             </File>
           </Files>
         </Group>

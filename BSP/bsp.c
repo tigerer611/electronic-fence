@@ -1,7 +1,7 @@
 #include "includes.h"
 #include "stm32f10x.h"	
 #include "demo.h"	 
-
+#include "serial.h"
 uint8_t TxBuffer1[] = "USART Interrupt Example: This is USART1 DEMO";
 
 void GPIO_Configuration(void);
@@ -31,8 +31,6 @@ void RCC_Configuration(void){
   RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOB |RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD |
                          RCC_APB2Periph_GPIOE, ENABLE);
   RCC_APB1PeriphClockCmd( RCC_APB1Periph_USART2, ENABLE); 			//使能串口2时钟 
-  RCC_APB2PeriphClockCmd( RCC_APB2Periph_USART1 , ENABLE);	 		//使能串口1时钟 
-
 }
 /****************************************************************************
 * 名    称：void NVIC_Configuration(void)
@@ -157,7 +155,7 @@ void BSP_Init(void)
   Rst1_Buf=0;					   //串口1缓存延时复位
   RCC_Configuration();  	       //系统时钟初始化	
   NVIC_Configuration(); 		   //中断源配置
-  USART1_Config(115200);     	   //初始化串口1     
+	SER_Config();	
   USART2_Config(38400);            //初始化串口2         
   /* 显示例程Logo */
   USART_OUT(USART1,"**** (C) COPYRIGHT 2013 奋斗嵌入式开发工作室 *******\r\n");    	  //向串口1发送开机字符。
