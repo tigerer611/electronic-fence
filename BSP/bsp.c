@@ -41,63 +41,17 @@ void RCC_Configuration(void){
 * 调用方法：无 
 ****************************************************************************/
 void NVIC_Configuration(void)
-{
-  NVIC_InitTypeDef NVIC_InitStructure;	  
- 
+{ 
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
+  /* Configure DMA1_Channel_Tx interrupt */
+  NVIC_SetPriority(DMA1_Channel_Tx_IRQn, 0x01);
+  NVIC_EnableIRQ(DMA1_Channel_Tx_IRQn);
 
-   NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;			    //设置串口1中断
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;	     	//抢占优先级 0
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;				//子优先级为0
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;					//使能
-  NVIC_Init(&NVIC_InitStructure);
+  /* Configure USART1 interrupt */
+  NVIC_SetPriority(USART1_IRQn, 0x00);
+  NVIC_EnableIRQ(USART1_IRQn);
 
-  NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;			     	//设置串口2中断
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;	     	//抢占优先级 0
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;				//子优先级为1
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;					//使能
-  NVIC_Init(&NVIC_InitStructure);
-}
-/****************************************************************************
-* 名    称：void USART1_Config(u32 baud)
-* 功    能：串口1配置
-* 入口参数：无
-* 出口参数：无
-* 说    明：
-* 调用方法：无 
-****************************************************************************/
-void USART1_Config(u32 baud){
-  GPIO_InitTypeDef GPIO_InitStructure;
-  USART_InitTypeDef USART_InitStructure;
-
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;	         		 		//USART1 TX
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;    		 		//复用推挽输出
-  GPIO_Init(GPIOA, &GPIO_InitStructure);		    		 		//A端口 
-
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;	         	 		//USART1 RX
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;   	 		//复用开漏输入
-  GPIO_Init(GPIOA, &GPIO_InitStructure);		         	 		//A端口 
-
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;				        //RS485输入输出控制
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;			        //推挽输出
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOD, &GPIO_InitStructure);
-  GPIO_ResetBits(GPIOD, GPIO_Pin_12);		                             //RS485输入模式
-
-  USART_InitStructure.USART_BaudRate = baud;						//速率
-  USART_InitStructure.USART_WordLength = USART_WordLength_8b;		//数据位8位
-  USART_InitStructure.USART_StopBits = USART_StopBits_1;			//停止位1位
-  USART_InitStructure.USART_Parity = USART_Parity_No;				//无校验位
-  USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;   //无硬件流控
-  USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;					//收发模式
-  /*配置USART1 */
-  USART_Init(USART1,&USART_InitStructure);							//配置串口参数函数   
-  USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);                    //使能接收中断
-  USART_ITConfig(USART1, USART_IT_TXE, ENABLE);						//使能发送缓冲空中断   
-   /* 使能USART1 */
-  USART_Cmd(USART1, ENABLE);	
 }
 
 /****************************************************************************

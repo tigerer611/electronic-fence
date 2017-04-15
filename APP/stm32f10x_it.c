@@ -143,16 +143,6 @@ void SysTickHandler(void)
    OS_ENTER_CRITICAL();  //保存全局中断标志,关总中断/* Tell uC/OS-II that we are starting an ISR*/
    OSIntNesting++;
    OS_EXIT_CRITICAL();	  //恢复全局中断标志
-   Rst_Buf++;   		  
-   if(Rst_Buf>=10){		  //串口2的完整成帧标志
-   	  Rst_Buf=0; 
-	  if(RxCount>0) OSMboxPost(USART2_MBOX,(void *)&rx_buf_t); //发送USART2接收成功的邮箱信息
-   }
-   Rst1_Buf++;   
-   if(Rst1_Buf>=10){	  //串口1的完整成帧标志
-   	  Rst1_Buf=0; 
-	  if(RxCount1>0) OSMboxPost(USART1_MBOX,(void *)&rx1_buf_t);//发送USART1接收成功的邮箱信息
-   }  
    OSTimeTick();     /* Call uC/OS-II's OSTimeTick(),在os_core.c文件里定义,主要判断延时的任务是否计时到*/ 
    OSIntExit();  //在os_core.c文件里定义,如果有更高优先级的任务就绪了,则执行一次任务切换     
 }
@@ -323,9 +313,9 @@ void DMAChannel3_IRQHandler(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void DMAChannel4_IRQHandler(void)
-{
-}
+//void DMAChannel4_IRQHandler(void)
+//{
+//}
 
 /*******************************************************************************
 * Function Name  : DMA1_Channel5_IRQHandler
@@ -579,33 +569,6 @@ void SPI2_IRQHandler(void)
 {
  
 }
-///*******************************************************************************
-//* Function Name  : USART1_IRQHandler
-//* Description    : This function handles USART1 global interrupt request.
-//* Input          : None
-//* Output         : None
-//* Return         : None
-//*******************************************************************************/
-//void USART1_IRQHandler(void)
-//{
-//   OS_CPU_SR  cpu_sr;
-//   OS_ENTER_CRITICAL();  //保存全局中断标志,关总中断 Tell uC/OS-II that we are starting an ISR
-//   OSIntNesting++;
-//   OS_EXIT_CRITICAL();	  //恢复全局中断标志	
-//   if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)	   //判断读寄存器是否非空
-//   {	
-//      rx1_buf_t[RxCount1] = USART_ReceiveData(USART1);         //将读寄存器的数据缓存到接收缓冲区里
-//	  RxCount1++;
-//	  rx1_buf_t[RxCount1]=0;		
-//	  Rst1_Buf=0;
-//    }
-//  
-//    if(USART_GetITStatus(USART1, USART_IT_TXE) != RESET)       //这段是为了避免STM32 USART 第一个字节发不出去的BUG 
-//    { 
-//       USART_ITConfig(USART1, USART_IT_TXE, DISABLE);		   //禁止发缓冲器空中断， 
-//    }
-//    OSIntExit();           //在os_core.c文件里定义,如果有更高优先级的任务就绪了,则执行一次任务切换     	
-//}
 /*******************************************************************************
 * Function Name  : USART2_IRQHandler
 * Description    : This function handles USART1 global interrupt request.

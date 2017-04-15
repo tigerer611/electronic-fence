@@ -49,13 +49,11 @@
 *********************************************************************************************************
 */
 
-#define  APP_TASK_START_PRIO                               2
-#define  APP_TASK_USER_IF_PRIO                             19
-#define  APP_TASK_KBD_PRIO                                 12
-//#define  Task_Com1_PRIO                                    4
+#define  APP_TASK_START_PRIO                          5
 #define  APP_TASK_USART2_PRIO					               11     
-#define  APP_TASK_USART1_PRIO					               10      
-
+#define  APP_TASK_txPump_PRIO					               10
+#define  APP_TASK_serRX_PRIO                         12
+#define  MUTEX_PRIO                                  7
 
 
 
@@ -68,11 +66,9 @@
 
 #define  APP_TASK_START_STK_SIZE                         64
 #define  APP_TASK_KBD_STK_SIZE                           64
-//#define  Task_Com1_STK_SIZE                            64
-#define  APP_TASK_USER_IF_STK_SIZE                       2048
-#define  APP_TASK_USART2_STK_SIZE                        1024
-#define  APP_TASK_USART1_STK_SIZE                        1024
-
+#define  APP_TASK_USART2_STK_SIZE                        512
+#define  APP_TASK_txPump_STK_SIZE                        1024
+#define  APP_TASK_serRX_STK_SIZE                         1024
 
 
 #define  uC_CFG_OPTIMIZE_ASM_EN                 DEF_ENABLED

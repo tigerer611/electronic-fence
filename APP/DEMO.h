@@ -7,6 +7,8 @@
 #define EXT extern 
 #endif
 
+#define  INFINITE 0
+
 #define LED1_ON()	GPIO_SetBits(GPIOB,  GPIO_Pin_5);
 #define LED2_ON()	GPIO_SetBits(GPIOD,  GPIO_Pin_6);
 #define LED3_ON()	GPIO_SetBits(GPIOD,  GPIO_Pin_3);
@@ -21,3 +23,5 @@ EXT unsigned char rx1_buf[1500],rx1_buf_t[1500];
 EXT unsigned short RxCount,RxCount1;                   
 EXT OS_EVENT* USART1_MBOX;		                      //USART1接收邮箱;
 EXT OS_EVENT* USART2_MBOX;		                      //USART2接收邮箱;
+EXT OS_EVENT* mutex_pr;		                      //usart1 printf mutux
+EXT OS_EVENT* tid_txPump;

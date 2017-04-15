@@ -7,7 +7,7 @@
 #include "shell.h"
 
 //command max length
-#define MAXARGS 32
+#define MAXARGS 128
 
 static int cmd_seq;
 void pr_result(pr p, int result)
@@ -20,7 +20,7 @@ void pr_result(pr p, int result)
 
 int do_V (int argc, char *argv[], pr p)
 {
-	p("hello world!!!!! \n");
+	p("stm32 gets bluetooth data!!!!! \n");
 	return 0;
 } 
 
@@ -58,7 +58,7 @@ int parse_line(char *buf, char *argv[])
   return nargs;
 }
 
-static void parse_and_process(char *buf, pr p)
+void parse_and_process(char *buf, pr p)
 {
   int argc;
   char *argv[MAXARGS];
@@ -103,21 +103,3 @@ static void parse_and_process(char *buf, pr p)
   pr_result(p, result);
 }
 
-#define ITM_PROMPT "DBG> "
-
-char ser_buf[1024];
-void serRX(void const *argument) {
-  int dat;
-  int col = 0;
-  while (1) {
-    dat = SER_getchar();
-    if (dat == '\r' || dat == '#' || dat == '\n') {
-      ser_buf[col] = '\0';
-      col = 0;
-      if (strlen(ser_buf) > 0) parse_and_process(ser_buf, SER_printf);
-    } else {
-      if (col < 1023)
-        ser_buf[col++] = dat;
-    }
-  }
-}

@@ -1,31 +1,9 @@
-/****************************************************************************
-* Copyright (C), 2013 奋斗嵌入式工作室 www.ourstm.net
-*
-* 本例程在 奋斗版STM32开发板V5,V3，V2,v2.1，MINI上调试通过           
-* QQ: 9191274, 旺旺：sun68, Email: sun68@163.com 
-* 淘宝店铺：ourstm.taobao.com  
-*
-* 文件名: app.c
-* 内容简述:
-*       本例程操作系统采用ucos2.86a版本， 建立了5个任务
-			任务名											 优先级
-			APP_TASK_START_PRIO                               2	        主任务
-		 	TASK_USART1_PRIO                                  10		USART1报文接收任务
-			TASK_USART2_PRIO                                  11		USART2报文接收任务
-		 当然还包含了系统任务：
-		    OS_TaskIdle                  空闲任务-----------------优先级最低
-			OS_TaskStat                  统计运行时间的任务-------优先级次低
-*
-* 文件历史:
-* 版本号  日期       作者    说明
-* v0.1    2011-11-22 sun68  创建该文件
-*
-*/
-
 #define GLOBALS	  					   
 #include "includes.h"
 #include "demo.h"
-	
+#include "circ_buf.h"
+#include "serial.h"
+#include "shell.h"
 extern void Delay(__IO uint32_t nCount);
 void USART_OUT(USART_TypeDef* USARTx, uint8_t *Data,...);
 extern void USART_OUTB(USART_TypeDef* USARTx, uint8_t *Data,uint16_t Len);
@@ -38,7 +16,8 @@ char *itoa(int value, char *string, int radix);
 
 static  OS_STK App_TaskStartStk[APP_TASK_START_STK_SIZE];
 static  OS_STK Task_USART2Stk[APP_TASK_USART2_STK_SIZE];
-static  OS_STK Task_USART1Stk[APP_TASK_USART1_STK_SIZE];
+static  OS_STK Task_txPumpStk[APP_TASK_txPump_STK_SIZE];
+static  OS_STK Task_serRXStk[APP_TASK_serRX_STK_SIZE];
 
 /*
 *********************************************************************************************************
@@ -48,7 +27,8 @@ static  OS_STK Task_USART1Stk[APP_TASK_USART1_STK_SIZE];
 static  void App_TaskCreate(void);	  
 static  void App_TaskStart(void* p_arg);
 static  void Task_USART2(void* p_arg);	 
-static  void Task_USART1(void* p_arg);	  
+static  void Task_txPump(void* p_arg);	
+static  void Task_serRX(void* p_arg);
 
 /****************************************************************************
 * 名    称：int main(void)
@@ -60,7 +40,6 @@ static  void Task_USART1(void* p_arg);
 ****************************************************************************/
 int main(void)
 {
-   CPU_INT08U os_err; 
    /* 禁止所有中断 */
    CPU_IntDis();
    
@@ -71,7 +50,7 @@ int main(void)
    BSP_Init();                               
    
    //建立主任务， 优先级最高  建立这个任务另外一个用途是为了以后使用统计任务
-   os_err = OSTaskCreate((void (*) (void *)) App_TaskStart,               		    //指向任务代码的指针
+	 OSTaskCreate((void (*) (void *)) App_TaskStart,               		    //指向任务代码的指针
                           (void *) 0,												//任务开始执行时，传递给任务的参数的指针
                		     (OS_STK *) &App_TaskStartStk[APP_TASK_START_STK_SIZE - 1],	//分配给任务的堆栈的栈顶指针   从顶向下递减
                          (INT8U) APP_TASK_START_PRIO);								//分配给任务的优先级
@@ -91,7 +70,6 @@ int main(void)
 ****************************************************************************/
 static  void App_TaskStart(void* p_arg)
 {
- 
   (void) p_arg;
    //初始化ucosII时钟节拍
    OS_CPU_SysTickInit();
@@ -106,7 +84,6 @@ static  void App_TaskStart(void* p_arg)
 
    while (1)
    {  
-   	  
 	  OSTimeDlyHMSM(0, 0, 0, 1000);
    }
 }
@@ -121,20 +98,11 @@ static  void App_TaskStart(void* p_arg)
 ****************************************************************************/
 static  void App_TaskCreate(void)
 { 
-   USART1_MBOX=OSMboxCreate((void *) 0);		     							   //建立USART1接收任务的消息邮箱
-   USART2_MBOX=OSMboxCreate((void *) 0);		     							   //建立USART2接收任务的消息邮箱	
+	 INT8U   err;
+   USART2_MBOX = OSMboxCreate((void *) 0);		     							   //建立USART2接收任务的消息邮箱	
+	 mutex_pr = OSMutexCreate(MUTEX_PRIO,&err);
+	 tid_txPump = OSSemCreate(1);
 
-					   
-   /*   建立USART1 报文接收任务 */
-   OSTaskCreateExt(Task_USART1,
-   					(void *)0,
-					(OS_STK *)&Task_USART1Stk[APP_TASK_USART1_STK_SIZE-1],
-					APP_TASK_USART1_PRIO,
-					APP_TASK_USART1_PRIO,
-					(OS_STK *)&Task_USART1Stk[0],
-                    APP_TASK_USART1_STK_SIZE,
-                    (void *)0,
-                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
 	/*   建立USART2 报文接收任务 */
    OSTaskCreateExt(Task_USART2,
    					(void *)0,
@@ -145,28 +113,26 @@ static  void App_TaskCreate(void)
                     APP_TASK_USART2_STK_SIZE,
                     (void *)0,
                     OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
-}
+										
+   OSTaskCreateExt(Task_txPump,
+				(void *)0,
+					(OS_STK *)&Task_txPumpStk[APP_TASK_txPump_STK_SIZE-1],
+					APP_TASK_txPump_PRIO,
+					APP_TASK_txPump_PRIO,
+					(OS_STK *)&Task_txPumpStk[0],
+                    APP_TASK_txPump_STK_SIZE,
+                    (void *)0,
+                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
 
-/****************************************************************************
-* 名    称：static  void Task_Usart1(void *p_arg)
-* 功    能：USART1接收任务
-* 入口参数：无
-* 出口参数：无
-* 说    明：
-* 调用方法：无 
-****************************************************************************/
-static  void Task_USART1(void *p_arg){    
-   INT8U err;
-   unsigned char * msg; 
-   (void)p_arg;	  
-   while(1){   
-	 msg=(unsigned char *)OSMboxPend(USART1_MBOX,0,&err); //等待USART1成功接收一帧的邮箱信息
-	 memcpy(rx1_buf, msg, RxCount1+2);	
-	 Tx_Size=strlen(rx1_buf);							  //获得测试报文的长度  							
-	 /* 向串口2发送一帧报文 */														   									
-	 USART_OUTB(USART2,rx1_buf,Tx_Size);	 
-	 RxCount1=0;
-  }
+   OSTaskCreateExt(Task_serRX,
+				(void *)0,
+					(OS_STK *)&Task_serRXStk[APP_TASK_serRX_STK_SIZE-1],
+					APP_TASK_serRX_PRIO,
+					APP_TASK_serRX_PRIO,
+					(OS_STK *)&Task_serRXStk[0],
+                    APP_TASK_serRX_STK_SIZE,
+                    (void *)0,
+                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);									
 }
 
 /****************************************************************************
@@ -188,6 +154,60 @@ static  void Task_USART2(void *p_arg){
 	 RxCount=0;					 	 
   }
 }
+
+extern volatile int xmiting;
+// DMA buffer
+extern uint8_t Tx_DMA_Buffer[DMA_BUF_SIZE];
+extern uint8_t Rx_DMA_Buffer[DMA_BUF_SIZE];
+extern struct circ_buf xmit_buf;
+void Task_txPump(void* p_arg)
+{
+  uint8_t data;
+  uint16_t TxCounter;
+	INT8U err;
+  while(1)
+  {
+    if (xmiting != 1) {
+      TxCounter = 0;
+      while(circ_get(&xmit_buf, &data) == 0) {
+        Tx_DMA_Buffer[TxCounter++] = data;
+        // take up to DMA_BUF_SIZE bytes from circ buf to DMA buffer
+        if (TxCounter == DMA_BUF_SIZE)
+          break;
+      }
+      if (TxCounter > 0) {
+        DMA_SetCurrDataCounter(DMA1_Channel_Tx, TxCounter);
+        /* Enable DMA1 Channel_Tx */
+        DMA_Cmd(DMA1_Channel_Tx, ENABLE);
+        xmiting = 1;
+      } else
+				OSSemPend(tid_txPump,20,&err);
+    } else
+		OSSemPend(tid_txPump,20,&err);
+  }
+}
+
+extern void parse_and_process(char *buf, pr p);
+char ser_buf[1024];
+
+void Task_serRX(void* p_arg) {
+  int dat;
+  int col = 0;
+  SER_printf("COMMAND>");
+  while (1) {
+    dat = SER_getchar();
+    if (dat == '\r' || dat == '#' || dat == '\n') {
+      ser_buf[col] = '\0';
+      col = 0;
+      if (strlen(ser_buf) > 0) parse_and_process(ser_buf, SER_printf);
+			SER_printf("COMMAND> ");
+		} else {
+      if (col < 1023)
+        ser_buf[col++] = dat;
+    }
+  }
+}
+
 /*
 *********************************************************************************************************
 *********************************************************************************************************

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "serial.h"
 #include "circ_buf.h"
-
+#include "demo.h"
 // DMA buffer
 uint8_t Tx_DMA_Buffer[DMA_BUF_SIZE];
 uint8_t Rx_DMA_Buffer[DMA_BUF_SIZE];
@@ -33,24 +33,8 @@ void USART1_IRQHandler(void)
 static void SER_RCC_Config()
 {
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
-
   RCC_APB2PeriphClockCmd(USART_Tx_GPIO_CLK | USART_Rx_GPIO_CLK, ENABLE);
   RCC_APB2PeriphClockCmd(USART_Tx_CLK | USART_Rx_CLK, ENABLE);
-}
-
-static void SER_NVIC_Config()
-{
-  // FIXME: the priority group setting should move to global
-  /* 1 bit for pre-emption priority, 3 bits for subpriority */
-  NVIC_SetPriorityGrouping(6);
-
-  /* Configure DMA1_Channel_Tx interrupt */
-  NVIC_SetPriority(DMA1_Channel_Tx_IRQn, 0x01);
-  NVIC_EnableIRQ(DMA1_Channel_Tx_IRQn);
-
-  /* Configure USART1 interrupt */
-  NVIC_SetPriority(USART1_IRQn, 0x00);
-  NVIC_EnableIRQ(USART1_IRQn);
 }
 
 static void SER_GPIO_Config()
@@ -124,61 +108,27 @@ static void SER_UART_Config()
 }
 
 // flag to indicate whether xmit DMA is ongoing
-int xmiting = 0;
+volatile int xmiting = 0;
 
-void DMA1_Channel4_IRQHandler(void)
+void DMAChannel4_IRQHandler(void)
 {
   /* Disable DMA1_Channel4 transfer*/
   DMA_Cmd(DMA1_Channel4, DISABLE);
   /*  Clear DMA1_Channel4 Transfer Complete Flag*/
   DMA_ClearFlag(DMA1_FLAG_TC4);
-
   xmiting = 0;
-//  osSignalSet(tid_txPump, 0x0001);
-}
-
-void txPump(void const *argument)
-{
-  uint8_t data;
-  uint16_t TxCounter;
-
-  while(1)
-  {
-    if (xmiting != 1) {
-      TxCounter = 0;
-      while(circ_get(&xmit_buf, &data) == 0) {
-        Tx_DMA_Buffer[TxCounter++] = data;
-        // take up to DMA_BUF_SIZE bytes from circ buf to DMA buffer
-        if (TxCounter == DMA_BUF_SIZE)
-          break;
-      }
-      if (TxCounter > 0) {
-        DMA_SetCurrDataCounter(DMA1_Channel_Tx, TxCounter);
-        /* Enable DMA1 Channel_Tx */
-        DMA_Cmd(DMA1_Channel_Tx, ENABLE);
-        xmiting = 1;
-			}
-		}
-//      } else
-//        osSignalWait(0x0001, 20);
-//    } else
-//      osSignalWait(0x0001, 20);
-  }
+	OSSemPost(tid_txPump); 
 }
 
 void SER_Config()
 {
   SER_RCC_Config();
-  SER_NVIC_Config();
   SER_GPIO_Config();
   SER_DMA_Config();
   SER_UART_Config();
 
   circ_init(&recv_buf, RxBuffer, RX_BUF_SIZE);
   circ_init(&xmit_buf, TxBuffer, TX_BUF_SIZE);
-
-//  tid_txPump = osThreadCreate(osThread(txPump), NULL);
-//  mutex_pr = osMutexCreate(osMutex(mutexPr));
 }
 
 uint8_t SER_getchar(void)
@@ -213,13 +163,14 @@ int SER_printf(const char *fmt, ...)
   char buf[128];
   int len;
   int i;
+	INT8U   err;
   va_list args;
-//  osMutexWait(mutex_pr, osWaitForever);
+	OSMutexPend(mutex_pr, INFINITE, &err);
   va_start(args, fmt);
   len = vsnprintf(buf, 128, fmt, args);
   va_end(args);
   for (i = 0; i < len; i++)
     SER_putchar(buf[i]);
-//  osMutexRelease(mutex_pr);
+	OSMutexPost(mutex_pr); 
   return len;
 }

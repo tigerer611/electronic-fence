@@ -361,7 +361,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER, STM32F10X_HD</Define>
+              <Define>USE_STDPERIPH_DRIVER, STM32F10X_HD,STDIN_ECHO=1, STDOUT_CR_LF=1, STDERR_CR_LF=1, SER_CR_LF=1</Define>
               <Undefine></Undefine>
               <IncludePath>..\APP;..\BSP;..\FWLib\inc;..\Startup;..\uCOS-II\Source;..\uCOS-II\uC-CPU;..\uCOS-II\uC-LIB;..\uCOS-II\Ports;..\CM3</IncludePath>
             </VariousControls>
