@@ -111,18 +111,7 @@ void BSP_Init(void)
   NVIC_Configuration(); 		   //中断源配置
 	SER_Config();	
   USART2_Config(38400);            //初始化串口2         
-  /* 显示例程Logo */
-  USART_OUT(USART1,"**** (C) COPYRIGHT 2013 奋斗嵌入式开发工作室 *******\r\n");    	  //向串口1发送开机字符。
-  USART_OUT(USART1,"*                                                 *\r\n");    	
-  USART_OUT(USART1,"*  奋斗版STM32开发板zigbee/RS-485/USART2通信实验  *\r\n");  
-  USART_OUT(USART1,"*                                                 *\r\n");    	  	
-  USART_OUT(USART1,"*     MCU平台:STM32F103VET6                       *\r\n");   	  	
-  USART_OUT(USART1,"*     固件库：3.5                                 *\r\n");    	
-  USART_OUT(USART1,"*     例程版本: 0.1                               *\r\n");  
-  USART_OUT(USART1,"*     奋斗STM32店铺：ourstm.taobao.com            *\r\n");     	   
-  USART_OUT(USART1,"*     奋斗STM32论坛：www.ourstm.net  QQ：9191274  *\r\n");   
-  USART_OUT(USART1,"*                                                 *\r\n");    	 	
-  USART_OUT(USART1,"***************************************************\r\n");  
+  USART_OUT(USART1,"**** electronic fence *******\r\n");    	  //向串口1发送开机字符。
 }
 
 
