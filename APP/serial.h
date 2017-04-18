@@ -26,7 +26,11 @@
 #define  DMA1_Channel_Rx          DMA1_Channel5
 
 void SER_Config(void);
-uint8_t SER_getchar(void);
-int SER_printf(const char *fmt, ...);
+uint8_t SER_getchar1(void);
+uint8_t SER_getchar2(void);
+uint8_t SER_getchar3(void);
+int SER_printf1(const char *fmt, ...);
+int SER_printf2(const char *fmt, ...);
+int SER_printf3(const char *fmt, ...);
 
 #endif

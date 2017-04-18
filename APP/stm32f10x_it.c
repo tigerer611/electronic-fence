@@ -291,9 +291,9 @@ void DMAChannel1_IRQHandler(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void DMAChannel2_IRQHandler(void)
-{
-}
+//void DMAChannel2_IRQHandler(void)
+//{
+//}
 
 /*******************************************************************************
 * Function Name  : DMA1_Channel3_IRQHandler
@@ -346,9 +346,9 @@ void DMAChannel6_IRQHandler(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void DMAChannel7_IRQHandler(void)
-{
-}
+//void DMAChannel7_IRQHandler(void)
+//{
+//}
 
 /*******************************************************************************
 * Function Name  : ADC1_2_IRQHandler

@@ -23,5 +23,9 @@ EXT unsigned char rx1_buf[1500],rx1_buf_t[1500];
 EXT unsigned short RxCount,RxCount1;                   
 EXT OS_EVENT* USART1_MBOX;		                      //USART1接收邮箱;
 EXT OS_EVENT* USART2_MBOX;		                      //USART2接收邮箱;
-EXT OS_EVENT* mutex_pr;		                      //usart1 printf mutux
-EXT OS_EVENT* tid_txPump;
+EXT OS_EVENT* mutex_pr1;		                      //usart1 printf mutux
+EXT OS_EVENT* mutex_pr2;		                      //usart2 printf mutux
+EXT OS_EVENT* mutex_pr3;		                      //usart3 printf mutux
+EXT OS_EVENT* tid_txPump1;
+EXT OS_EVENT* tid_txPump2;
+EXT OS_EVENT* tid_txPump3;

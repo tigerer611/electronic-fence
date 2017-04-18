@@ -2,7 +2,6 @@
 #include "stm32f10x.h"	
 #include "demo.h"	 
 #include "serial.h"
-uint8_t TxBuffer1[] = "USART Interrupt Example: This is USART1 DEMO";
 
 void GPIO_Configuration(void);
 void RCC_Configuration(void);
@@ -106,7 +105,6 @@ void USART2_Config(u32 baud){
 void BSP_Init(void)
 { 
   Rst_Buf=0;					   //串口2缓存延时复位
-  Rst1_Buf=0;					   //串口1缓存延时复位
   RCC_Configuration();  	       //系统时钟初始化	
   NVIC_Configuration(); 		   //中断源配置
 	SER_Config();	

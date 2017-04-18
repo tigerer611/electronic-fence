@@ -100,8 +100,12 @@ static  void App_TaskCreate(void)
 { 
 	 INT8U   err;
    USART2_MBOX = OSMboxCreate((void *) 0);		     							   //建立USART2接收任务的消息邮箱	
-	 mutex_pr = OSMutexCreate(MUTEX_PRIO,&err);
-	 tid_txPump = OSSemCreate(1);
+	 mutex_pr1 = OSMutexCreate(MUTEX_PRIO,&err);
+	 mutex_pr2 = OSMutexCreate(MUTEX_PRIO,&err);
+	 mutex_pr3 = OSMutexCreate(MUTEX_PRIO,&err);
+	 tid_txPump1 = OSSemCreate(1);
+	 tid_txPump2 = OSSemCreate(1);
+	 tid_txPump3 = OSSemCreate(1);
 
 	/*   建立USART2 报文接收任务 */
    OSTaskCreateExt(Task_USART2,
@@ -157,9 +161,9 @@ static  void Task_USART2(void *p_arg){
 
 extern volatile int xmiting;
 // DMA buffer
-extern uint8_t Tx_DMA_Buffer[DMA_BUF_SIZE];
-extern uint8_t Rx_DMA_Buffer[DMA_BUF_SIZE];
-extern struct circ_buf xmit_buf;
+extern uint8_t Usart1_Tx_DMA_Buffer[DMA_BUF_SIZE];
+extern uint8_t Usart1_Rx_DMA_Buffer[DMA_BUF_SIZE];
+extern struct circ_buf xmit_buf1;
 void Task_txPump(void* p_arg)
 {
   uint8_t data;
@@ -169,8 +173,8 @@ void Task_txPump(void* p_arg)
   {
     if (xmiting != 1) {
       TxCounter = 0;
-      while(circ_get(&xmit_buf, &data) == 0) {
-        Tx_DMA_Buffer[TxCounter++] = data;
+      while(circ_get1(&xmit_buf1, &data) == 0) {
+        Usart1_Tx_DMA_Buffer[TxCounter++] = data;
         // take up to DMA_BUF_SIZE bytes from circ buf to DMA buffer
         if (TxCounter == DMA_BUF_SIZE)
           break;
@@ -181,9 +185,9 @@ void Task_txPump(void* p_arg)
         DMA_Cmd(DMA1_Channel_Tx, ENABLE);
         xmiting = 1;
       } else
-				OSSemPend(tid_txPump,20,&err);
+				OSSemPend(tid_txPump1,20,&err);
     } else
-		OSSemPend(tid_txPump,20,&err);
+			OSSemPend(tid_txPump1,20,&err);
   }
 }
 
@@ -193,14 +197,14 @@ char ser_buf[1024];
 void Task_serRX(void* p_arg) {
   int dat;
   int col = 0;
-  SER_printf("COMMAND>");
+	SER_printf1("COMMAND>");
   while (1) {
-    dat = SER_getchar();
+    dat = SER_getchar1();
     if (dat == '\r' || dat == '#' || dat == '\n') {
       ser_buf[col] = '\0';
       col = 0;
-      if (strlen(ser_buf) > 0) parse_and_process(ser_buf, SER_printf);
-			SER_printf("COMMAND> ");
+      if (strlen(ser_buf) > 0) parse_and_process(ser_buf, SER_printf1);
+				SER_printf1("COMMAND> ");
 		} else {
       if (col < 1023)
         ser_buf[col++] = dat;
