@@ -16,8 +16,12 @@ char *itoa(int value, char *string, int radix);
 
 static  OS_STK App_TaskStartStk[APP_TASK_START_STK_SIZE];
 static  OS_STK Task_USART2Stk[APP_TASK_USART2_STK_SIZE];
-static  OS_STK Task_txPumpStk[APP_TASK_txPump_STK_SIZE];
-static  OS_STK Task_serRXStk[APP_TASK_serRX_STK_SIZE];
+static  OS_STK Task_txPumpStk1[APP_TASK_txPump1_STK_SIZE];
+static  OS_STK Task_serRXStk1[APP_TASK_serRX1_STK_SIZE];
+static  OS_STK Task_txPumpStk2[APP_TASK_txPump2_STK_SIZE];
+static  OS_STK Task_serRXStk2[APP_TASK_serRX2_STK_SIZE];
+static  OS_STK Task_txPumpStk3[APP_TASK_txPump3_STK_SIZE];
+static  OS_STK Task_serRXStk3[APP_TASK_serRX3_STK_SIZE];
 
 /*
 *********************************************************************************************************
@@ -27,8 +31,12 @@ static  OS_STK Task_serRXStk[APP_TASK_serRX_STK_SIZE];
 static  void App_TaskCreate(void);	  
 static  void App_TaskStart(void* p_arg);
 static  void Task_USART2(void* p_arg);	 
-static  void Task_txPump(void* p_arg);	
-static  void Task_serRX(void* p_arg);
+static  void Task_txPump1(void* p_arg);	
+static  void Task_serRX1(void* p_arg);
+static  void Task_txPump2(void* p_arg);	
+static  void Task_serRX2(void* p_arg);
+static  void Task_txPump3(void* p_arg);	
+static  void Task_serRX3(void* p_arg);
 
 /****************************************************************************
 * 名    称：int main(void)
@@ -99,79 +107,101 @@ static  void App_TaskStart(void* p_arg)
 static  void App_TaskCreate(void)
 { 
 	 INT8U   err;
-   USART2_MBOX = OSMboxCreate((void *) 0);		     							   //建立USART2接收任务的消息邮箱	
 	 mutex_pr1 = OSMutexCreate(MUTEX_PRIO,&err);
 	 mutex_pr2 = OSMutexCreate(MUTEX_PRIO,&err);
 	 mutex_pr3 = OSMutexCreate(MUTEX_PRIO,&err);
 	 tid_txPump1 = OSSemCreate(1);
 	 tid_txPump2 = OSSemCreate(1);
 	 tid_txPump3 = OSSemCreate(1);
-
-	/*   建立USART2 报文接收任务 */
-   OSTaskCreateExt(Task_USART2,
-   					(void *)0,
-					(OS_STK *)&Task_USART2Stk[APP_TASK_USART2_STK_SIZE-1],
-					APP_TASK_USART2_PRIO,
-					APP_TASK_USART2_PRIO,
-					(OS_STK *)&Task_USART2Stk[0],
-                    APP_TASK_USART2_STK_SIZE,
-                    (void *)0,
-                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
 										
-   OSTaskCreateExt(Task_txPump,
+   OSTaskCreateExt(Task_txPump1,
 				(void *)0,
-					(OS_STK *)&Task_txPumpStk[APP_TASK_txPump_STK_SIZE-1],
-					APP_TASK_txPump_PRIO,
-					APP_TASK_txPump_PRIO,
-					(OS_STK *)&Task_txPumpStk[0],
-                    APP_TASK_txPump_STK_SIZE,
+					(OS_STK *)&Task_txPumpStk1[APP_TASK_txPump1_STK_SIZE-1],
+					APP_TASK_txPump1_PRIO,
+					APP_TASK_txPump1_PRIO,
+					(OS_STK *)&Task_txPumpStk1[0],
+                    APP_TASK_txPump1_STK_SIZE,
                     (void *)0,
                     OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
 
-   OSTaskCreateExt(Task_serRX,
+   OSTaskCreateExt(Task_serRX1,
 				(void *)0,
-					(OS_STK *)&Task_serRXStk[APP_TASK_serRX_STK_SIZE-1],
-					APP_TASK_serRX_PRIO,
-					APP_TASK_serRX_PRIO,
-					(OS_STK *)&Task_serRXStk[0],
-                    APP_TASK_serRX_STK_SIZE,
+					(OS_STK *)&Task_serRXStk1[APP_TASK_serRX1_STK_SIZE-1],
+					APP_TASK_serRX1_PRIO,
+					APP_TASK_serRX1_PRIO,
+					(OS_STK *)&Task_serRXStk1[0],
+                    APP_TASK_serRX1_STK_SIZE,
                     (void *)0,
-                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);									
+                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);			
+
+   OSTaskCreateExt(Task_txPump2,
+				(void *)0,
+					(OS_STK *)&Task_txPumpStk2[APP_TASK_txPump2_STK_SIZE-1],
+					APP_TASK_txPump2_PRIO,
+					APP_TASK_txPump2_PRIO,
+					(OS_STK *)&Task_txPumpStk2[0],
+                    APP_TASK_txPump2_STK_SIZE,
+                    (void *)0,
+                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
+
+   OSTaskCreateExt(Task_serRX2,
+				(void *)0,
+					(OS_STK *)&Task_serRXStk2[APP_TASK_serRX2_STK_SIZE-1],
+					APP_TASK_serRX2_PRIO,
+					APP_TASK_serRX2_PRIO,
+					(OS_STK *)&Task_serRXStk2[0],
+                    APP_TASK_serRX2_STK_SIZE,
+                    (void *)0,
+                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
+
+//   OSTaskCreateExt(Task_txPump3,
+//				(void *)0,
+//					(OS_STK *)&Task_txPumpStk3[APP_TASK_txPump3_STK_SIZE-1],
+//					APP_TASK_txPump3_PRIO,
+//					APP_TASK_txPump3_PRIO,
+//					(OS_STK *)&Task_txPumpStk3[0],
+//                    APP_TASK_txPump3_STK_SIZE,
+//                    (void *)0,
+//                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
+
+//   OSTaskCreateExt(Task_serRX3,
+//				(void *)0,
+//					(OS_STK *)&Task_serRXStk3[APP_TASK_serRX3_STK_SIZE-1],
+//					APP_TASK_serRX3_PRIO,
+//					APP_TASK_serRX3_PRIO,
+//					(OS_STK *)&Task_serRXStk3[0],
+//                    APP_TASK_serRX3_STK_SIZE,
+//                    (void *)0,
+//                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);												
 }
 
-/****************************************************************************
-* 名    称：static  void Task_Usart2(void *p_arg)
-* 功    能：USART2接收任务
-* 入口参数：无
-* 出口参数：无
-* 说    明：
-* 调用方法：无 
-****************************************************************************/
-static  void Task_USART2(void *p_arg){    
-   INT8U err;
-   unsigned char * msg; 
-   (void)p_arg;	  
-   while(1){   
-	 msg=(unsigned char *)OSMboxPend(USART2_MBOX,0,&err); 		  //等待USART2成功接收一帧的邮箱信息
-	 /* 将接收到的报文保存在显示缓存区里用于显示 */			 
-	 memcpy(rx_buf, msg, RxCount+2);
-	 RxCount=0;					 	 
-  }
-}
+extern volatile int xmiting1;
+extern volatile int xmiting2;
+extern volatile int xmiting3;
 
-extern volatile int xmiting;
 // DMA buffer
 extern uint8_t Usart1_Tx_DMA_Buffer[DMA_BUF_SIZE];
 extern uint8_t Usart1_Rx_DMA_Buffer[DMA_BUF_SIZE];
+
+extern uint8_t Usart2_Tx_DMA_Buffer[DMA_BUF_SIZE];
+extern uint8_t Usart2_Rx_DMA_Buffer[DMA_BUF_SIZE];
+
+extern uint8_t Usart3_Tx_DMA_Buffer[DMA_BUF_SIZE];
+extern uint8_t Usart3_Rx_DMA_Buffer[DMA_BUF_SIZE];
+
 extern struct circ_buf xmit_buf1;
-void Task_txPump(void* p_arg)
+extern struct circ_buf xmit_buf2;
+extern struct circ_buf xmit_buf3;
+
+void Task_txPump1(void* p_arg)
 {
   uint8_t data;
   uint16_t TxCounter;
 	INT8U err;
   while(1)
   {
-    if (xmiting != 1) {
+		SER_printf1("Task_txPump1 is running \n");
+    if (xmiting1 != 1) {
       TxCounter = 0;
       while(circ_get1(&xmit_buf1, &data) == 0) {
         Usart1_Tx_DMA_Buffer[TxCounter++] = data;
@@ -183,18 +213,73 @@ void Task_txPump(void* p_arg)
         DMA_SetCurrDataCounter(DMA1_Channel_Tx, TxCounter);
         /* Enable DMA1 Channel_Tx */
         DMA_Cmd(DMA1_Channel_Tx, ENABLE);
-        xmiting = 1;
+        xmiting1 = 1;
       } else
-				OSSemPend(tid_txPump1,20,&err);
+				OSSemPend(tid_txPump1,200,&err);
     } else
-			OSSemPend(tid_txPump1,20,&err);
+			OSSemPend(tid_txPump1,200,&err);
+  }
+}
+
+void Task_txPump2(void* p_arg)
+{
+  uint8_t data;
+  uint16_t TxCounter;
+	INT8U err;
+  while(1)
+  {
+		SER_printf1("Task_txPump2 is running \n");
+    if (xmiting2 != 1) {
+      TxCounter = 0;
+      while(circ_get2(&xmit_buf2, &data) == 0) {
+        Usart2_Tx_DMA_Buffer[TxCounter++] = data;
+        // take up to DMA_BUF_SIZE bytes from circ buf to DMA buffer
+        if (TxCounter == DMA_BUF_SIZE)
+          break;
+      }
+      if (TxCounter > 0) {
+        DMA_SetCurrDataCounter(DMA1_Channel7, TxCounter);
+        /* Enable DMA1 Channel_Tx */
+        DMA_Cmd(DMA1_Channel7, ENABLE);
+        xmiting2 = 1;
+      } else
+				OSSemPend(tid_txPump2,200,&err);
+    } else
+		OSSemPend(tid_txPump2,200,&err);
+  }
+}
+
+void Task_txPump3(void* p_arg)
+{
+  uint8_t data;
+  uint16_t TxCounter;
+	INT8U err;
+  while(1)
+  {
+    if (xmiting3 != 1) {
+      TxCounter = 0;
+      while(circ_get3(&xmit_buf3, &data) == 0) {
+        Usart3_Tx_DMA_Buffer[TxCounter++] = data;
+        // take up to DMA_BUF_SIZE bytes from circ buf to DMA buffer
+        if (TxCounter == DMA_BUF_SIZE)
+          break;
+      }
+      if (TxCounter > 0) {
+        DMA_SetCurrDataCounter(DMA1_Channel2, TxCounter);
+        /* Enable DMA1 Channel_Tx */
+        DMA_Cmd(DMA1_Channel2, ENABLE);
+        xmiting3 = 1;
+      } else
+				OSSemPend(tid_txPump3,200,&err);
+    } else
+		OSSemPend(tid_txPump3,200,&err);
   }
 }
 
 extern void parse_and_process(char *buf, pr p);
 char ser_buf[1024];
 
-void Task_serRX(void* p_arg) {
+void Task_serRX1(void* p_arg) {
   int dat;
   int col = 0;
 	SER_printf1("COMMAND>");
@@ -205,6 +290,42 @@ void Task_serRX(void* p_arg) {
       col = 0;
       if (strlen(ser_buf) > 0) parse_and_process(ser_buf, SER_printf1);
 				SER_printf1("COMMAND> ");
+		} else {
+      if (col < 1023)
+        ser_buf[col++] = dat;
+    }
+  }
+}
+
+void Task_serRX2(void* p_arg) {
+  int dat;
+  int col = 0;
+  SER_printf2("COMMAND>");
+  while (1) {
+    dat = SER_getchar2();
+    if (dat == '\r' || dat == '#' || dat == '\n') {
+      ser_buf[col] = '\0';
+      col = 0;
+      if (strlen(ser_buf) > 0) parse_and_process(ser_buf, SER_printf2);
+			SER_printf2("COMMAND> ");
+		} else {
+      if (col < 1023)
+        ser_buf[col++] = dat;
+    }
+  }
+}
+
+void Task_serRX3(void* p_arg) {
+  int dat;
+  int col = 0;
+  SER_printf3("COMMAND>");
+  while (1) {
+    dat = SER_getchar3();
+    if (dat == '\r' || dat == '#' || dat == '\n') {
+      ser_buf[col] = '\0';
+      col = 0;
+      if (strlen(ser_buf) > 0) parse_and_process(ser_buf, SER_printf3);
+			SER_printf3("COMMAND> ");
 		} else {
       if (col < 1023)
         ser_buf[col++] = dat;

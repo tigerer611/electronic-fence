@@ -245,7 +245,7 @@ static void SER_UART_Config()
 
 
 // flag to indicate whether xmit DMA is ongoing
-volatile int xmiting = 0;
+volatile int xmiting1 = 0;
 
 void DMAChannel4_IRQHandler(void)
 {
@@ -253,7 +253,7 @@ void DMAChannel4_IRQHandler(void)
   DMA_Cmd(DMA1_Channel4, DISABLE);
   /*  Clear DMA1_Channel4 Transfer Complete Flag*/
   DMA_ClearFlag(DMA1_FLAG_TC4);
-  xmiting = 0;
+  xmiting1 = 0;
 	OSSemPost(tid_txPump1); 
 }
 
@@ -297,7 +297,7 @@ void SER_Config()
   circ_init2(&recv_buf2, RxBuffer2, RX_BUF_SIZE);
   circ_init2(&xmit_buf2, TxBuffer2, TX_BUF_SIZE);
 
-  //usart3 circle buff	
+  //usart3 circle buff
 	circ_init3(&recv_buf3, RxBuffer3, RX_BUF_SIZE);
 	circ_init3(&xmit_buf3, TxBuffer3, TX_BUF_SIZE);
 }

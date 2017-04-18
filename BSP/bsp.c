@@ -29,7 +29,6 @@ void RCC_Configuration(void){
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);			   //复用功能使能
   RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOB |RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD |
                          RCC_APB2Periph_GPIOE, ENABLE);
-  RCC_APB1PeriphClockCmd( RCC_APB1Periph_USART2, ENABLE); 			//使能串口2时钟 
 }
 /****************************************************************************
 * 名    称：void NVIC_Configuration(void)
@@ -54,47 +53,6 @@ void NVIC_Configuration(void)
 }
 
 /****************************************************************************
-* 名    称：void USART2_Config(u32 baud)
-* 功    能：串口2配置
-* 入口参数：无
-* 出口参数：无
-* 说    明：
-* 调用方法：无 
-****************************************************************************/
-void USART2_Config(u32 baud){
-  GPIO_InitTypeDef GPIO_InitStructure;
-  USART_InitTypeDef USART_InitStructure;
-
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;	         		 	    //USART2 TX
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;    		        //复用推挽输出
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);		    		        //A端口 
-
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;	         	 	        //USART2 RX
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;   	        //复用开漏输入
-  GPIO_Init(GPIOA, &GPIO_InitStructure);	
-
-  USART_InitStructure.USART_BaudRate = baud;						//速率
-  USART_InitStructure.USART_WordLength = USART_WordLength_8b;		//数据位8位
-  USART_InitStructure.USART_StopBits = USART_StopBits_1;			//停止位1位
-  USART_InitStructure.USART_Parity = USART_Parity_No;				//无校验位
-  USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;   //无硬件流控
-  USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;					//收发模式
-
-  /* Configure USART2 */
-  USART_Init(USART2, &USART_InitStructure);							//配置串口参数函数   
-
-  /*配置USART1 */
-  USART_Init(USART2,&USART_InitStructure);							//配置串口参数函数   
-  USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);                    //使能接收中断
-  USART_ITConfig(USART2, USART_IT_TXE, ENABLE);						//使能发送缓冲空中断   
-   /* 使能USART2 */
-  USART_Cmd(USART2, ENABLE);	
-  
-}
-
-
-/****************************************************************************
 * 名    称：void BSP_Init(void)
 * 功    能：奋斗板初始化函数
 * 入口参数：无
@@ -104,11 +62,9 @@ void USART2_Config(u32 baud){
 ****************************************************************************/  
 void BSP_Init(void)
 { 
-  Rst_Buf=0;					   //串口2缓存延时复位
   RCC_Configuration();  	       //系统时钟初始化	
   NVIC_Configuration(); 		   //中断源配置
-	SER_Config();	
-  USART2_Config(38400);            //初始化串口2         
+	SER_Config();	        
   USART_OUT(USART1,"**** electronic fence *******\r\n");    	  //向串口1发送开机字符。
 }
 
