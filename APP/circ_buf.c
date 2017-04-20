@@ -25,7 +25,7 @@ void circ_init3(struct circ_buf* circ, uint8_t *buf, uint32_t size)
 // size is 2^n
 int circ_put1(struct circ_buf* circ, uint8_t data)
 {
-  if(CIRC_SPACE(circ->head, circ->tail, circ->size) == 0)
+  if(CIRC_SPACE1(circ->head, circ->tail, circ->size) == 0)
     return -1;
 
   circ->buf[circ->head] = data;
@@ -35,7 +35,7 @@ int circ_put1(struct circ_buf* circ, uint8_t data)
 
 int circ_put2(struct circ_buf* circ, uint8_t data)
 {
-  if(CIRC_SPACE(circ->head, circ->tail, circ->size) == 0)
+  if(CIRC_SPACE2(circ->head, circ->tail, circ->size) == 0)
     return -1;
 
   circ->buf[circ->head] = data;
@@ -45,7 +45,7 @@ int circ_put2(struct circ_buf* circ, uint8_t data)
 
 int circ_put3(struct circ_buf* circ, uint8_t data)
 {
-  if(CIRC_SPACE(circ->head, circ->tail, circ->size) == 0)
+  if(CIRC_SPACE3(circ->head, circ->tail, circ->size) == 0)
     return -1;
 
   circ->buf[circ->head] = data;
@@ -56,7 +56,7 @@ int circ_put3(struct circ_buf* circ, uint8_t data)
 // size is 2^n, say important things three times
 int circ_get1(struct circ_buf* circ, uint8_t *data)
 {
-  if (CIRC_CNT(circ->head, circ->tail, circ->size) == 0)
+  if (CIRC_CNT1(circ->head, circ->tail, circ->size) == 0)
     return -1;
 
   *data = circ->buf[circ->tail];
@@ -66,7 +66,7 @@ int circ_get1(struct circ_buf* circ, uint8_t *data)
 
 int circ_get2(struct circ_buf* circ, uint8_t *data)
 {
-  if (CIRC_CNT(circ->head, circ->tail, circ->size) == 0)
+  if (CIRC_CNT2(circ->head, circ->tail, circ->size) == 0)
     return -1;
 
   *data = circ->buf[circ->tail];
@@ -76,7 +76,7 @@ int circ_get2(struct circ_buf* circ, uint8_t *data)
 
 int circ_get3(struct circ_buf* circ, uint8_t *data)
 {
-  if (CIRC_CNT(circ->head, circ->tail, circ->size) == 0)
+  if (CIRC_CNT3(circ->head, circ->tail, circ->size) == 0)
     return -1;
 
   *data = circ->buf[circ->tail];

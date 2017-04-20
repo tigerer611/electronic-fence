@@ -65,10 +65,7 @@ void BSP_Init(void)
   RCC_Configuration();  	       //系统时钟初始化	
   NVIC_Configuration(); 		   //中断源配置
 	SER_Config();	        
-  USART_OUT(USART1,"**** electronic fence *******\r\n");    	  //向串口1发送开机字符。
 }
-
-
 
 /****************************************************************************
 * 名    称：void  OS_CPU_SysTickInit(void)

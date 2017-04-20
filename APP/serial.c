@@ -31,11 +31,13 @@ uint8_t TxBuffer3[TX_BUF_SIZE];
 uint8_t RxBuffer3[RX_BUF_SIZE];
 
 // auto wrap around since (2^8 = 256) == DMA_BUF_SIZE
-uint8_t RxCounter = 0;
+uint8_t RxCounter1 = 0;
+uint8_t RxCounter2 = 0;
+uint8_t RxCounter3 = 0;
 void USART1_IRQHandler(void)
 {
   do {
-    circ_put1(&recv_buf1, Usart1_Rx_DMA_Buffer[RxCounter++]);
+    circ_put1(&recv_buf1, Usart1_Rx_DMA_Buffer[RxCounter1++]);
     // There is magic here. The Rx DMA is circular mode, so when the Rx_DMA_Buffer
     // is full, "DMA_BUF_SIZE - DMA_GetCurrDataCounter" will return to 0, i.e. the
     // DMA index wrap around. At this moment, the while condition will be false
@@ -43,7 +45,35 @@ void USART1_IRQHandler(void)
     //
     // But it works actually! This is why I call it magic.
     // Please note this is copied from st AN3109.
-  } while (RxCounter < (DMA_BUF_SIZE - DMA_GetCurrDataCounter(DMA1_Channel_Rx)));
+  } while (RxCounter1 < (DMA_BUF_SIZE - DMA_GetCurrDataCounter(DMA1_Channel_Rx)));
+}
+
+void USART2_IRQHandler(void)
+{
+  do {
+    circ_put2(&recv_buf2, Usart2_Rx_DMA_Buffer[RxCounter2++]);
+    // There is magic here. The Rx DMA is circular mode, so when the Rx_DMA_Buffer
+    // is full, "DMA_BUF_SIZE - DMA_GetCurrDataCounter" will return to 0, i.e. the
+    // DMA index wrap around. At this moment, the while condition will be false
+    // and the copy loop will be break.
+    //
+    // But it works actually! This is why I call it magic.
+    // Please note this is copied from st AN3109.
+  } while (RxCounter2 < (DMA_BUF_SIZE - DMA_GetCurrDataCounter(DMA1_Channel6)));
+}
+
+void USART3_IRQHandler(void)
+{
+  do {
+    circ_put1(&recv_buf3, Usart1_Rx_DMA_Buffer[RxCounter3++]);
+    // There is magic here. The Rx DMA is circular mode, so when the Rx_DMA_Buffer
+    // is full, "DMA_BUF_SIZE - DMA_GetCurrDataCounter" will return to 0, i.e. the
+    // DMA index wrap around. At this moment, the while condition will be false
+    // and the copy loop will be break.
+    //
+    // But it works actually! This is why I call it magic.
+    // Please note this is copied from st AN3109.
+  } while (RxCounter3 < (DMA_BUF_SIZE - DMA_GetCurrDataCounter(DMA1_Channel3)));
 }
 
 static void SER_RCC_Config()
@@ -312,14 +342,21 @@ uint8_t SER_getchar1(void)
 uint8_t SER_getchar2(void)
 {
   uint8_t data;
-  while (circ_get2(&recv_buf2, &data) != 0);
-  return data;
+//  while (circ_get2(&recv_buf2, &data) != 0);
+	if (circ_get2(&recv_buf2, &data) != 0)
+		return data;
+	else
+		return -1;
 }
 
 uint8_t SER_getchar3(void)
 {
   uint8_t data;
-  while (circ_get3(&recv_buf3, &data) != 0);
+//  while (circ_get3(&recv_buf3, &data) != 0);
+	if (circ_get3(&recv_buf3, &data) != 0)
+		return data;
+	else
+		return -1;
   return data;
 }
 
@@ -330,12 +367,12 @@ static void SER_putchar1(uint8_t data)
 {
 #if (SER_CR_LF != 0)
   if (data == '\n') {
-    while (CIRC_SPACE(xmit_buf1.head, xmit_buf1.tail, xmit_buf1.size) == 0)
+    while (CIRC_SPACE1(xmit_buf1.head, xmit_buf1.tail, xmit_buf1.size) == 0)
       __NOP();
     circ_put1(&xmit_buf1, '\r');
   }
 #endif
-  while (CIRC_SPACE(xmit_buf1.head, xmit_buf1.tail, xmit_buf1.size) == 0)
+  while (CIRC_SPACE1(xmit_buf1.head, xmit_buf1.tail, xmit_buf1.size) == 0)
     __NOP();
   circ_put1(&xmit_buf1, data);
 }
@@ -344,12 +381,12 @@ static void SER_putchar2(uint8_t data)
 {
 #if (SER_CR_LF != 0)
   if (data == '\n') {
-    while (CIRC_SPACE(xmit_buf2.head, xmit_buf2.tail, xmit_buf2.size) == 0)
+    while (CIRC_SPACE2(xmit_buf2.head, xmit_buf2.tail, xmit_buf2.size) == 0)
       __NOP();
     circ_put2(&xmit_buf2, '\r');
   }
 #endif
-  while (CIRC_SPACE(xmit_buf2.head, xmit_buf2.tail, xmit_buf2.size) == 0)
+  while (CIRC_SPACE2(xmit_buf2.head, xmit_buf2.tail, xmit_buf2.size) == 0)
     __NOP();
   circ_put2(&xmit_buf2, data);
 }
@@ -358,12 +395,12 @@ static void SER_putchar3(uint8_t data)
 {
 #if (SER_CR_LF != 0)
   if (data == '\n') {
-    while (CIRC_SPACE(xmit_buf3.head, xmit_buf3.tail, xmit_buf3.size) == 0)
+    while (CIRC_SPACE3(xmit_buf3.head, xmit_buf3.tail, xmit_buf3.size) == 0)
       __NOP();
     circ_put3(&xmit_buf3, '\r');
   }
 #endif
-  while (CIRC_SPACE(xmit_buf3.head, xmit_buf3.tail, xmit_buf3.size) == 0)
+  while (CIRC_SPACE3(xmit_buf3.head, xmit_buf3.tail, xmit_buf3.size) == 0)
     __NOP();
   circ_put3(&xmit_buf3, data);
 }

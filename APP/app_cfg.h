@@ -50,15 +50,15 @@
 */
 
 #define  APP_TASK_START_PRIO                          5 
-
-#define  APP_TASK_txPump1_PRIO					             10
-#define  APP_TASK_serRX1_PRIO                        11
-
+//usart1 ==> debug
+#define  APP_TASK_txPump1_PRIO					             13
+#define  APP_TASK_serRX1_PRIO                        14
+//usart2 ==> gprs
 #define  APP_TASK_txPump2_PRIO					             12
-#define  APP_TASK_serRX2_PRIO                        14
-
-#define  APP_TASK_txPump3_PRIO					             10
-#define  APP_TASK_serRX3_PRIO                        13
+#define  APP_TASK_serRX2_PRIO                        11
+//usart3 ==> bluetooth
+#define  APP_TASK_txPump3_PRIO					             15
+#define  APP_TASK_serRX3_PRIO                        10
 
 #define  MUTEX_PRIO                                  7
 

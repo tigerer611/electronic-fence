@@ -15,7 +15,6 @@ char *itoa(int value, char *string, int radix);
 */
 
 static  OS_STK App_TaskStartStk[APP_TASK_START_STK_SIZE];
-static  OS_STK Task_USART2Stk[APP_TASK_USART2_STK_SIZE];
 static  OS_STK Task_txPumpStk1[APP_TASK_txPump1_STK_SIZE];
 static  OS_STK Task_serRXStk1[APP_TASK_serRX1_STK_SIZE];
 static  OS_STK Task_txPumpStk2[APP_TASK_txPump2_STK_SIZE];
@@ -29,8 +28,7 @@ static  OS_STK Task_serRXStk3[APP_TASK_serRX3_STK_SIZE];
 *********************************************************************************************************
 */
 static  void App_TaskCreate(void);	  
-static  void App_TaskStart(void* p_arg);
-static  void Task_USART2(void* p_arg);	 
+static  void App_TaskStart(void* p_arg); 
 static  void Task_txPump1(void* p_arg);	
 static  void Task_serRX1(void* p_arg);
 static  void Task_txPump2(void* p_arg);	
@@ -154,25 +152,25 @@ static  void App_TaskCreate(void)
                     (void *)0,
                     OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
 
-//   OSTaskCreateExt(Task_txPump3,
-//				(void *)0,
-//					(OS_STK *)&Task_txPumpStk3[APP_TASK_txPump3_STK_SIZE-1],
-//					APP_TASK_txPump3_PRIO,
-//					APP_TASK_txPump3_PRIO,
-//					(OS_STK *)&Task_txPumpStk3[0],
-//                    APP_TASK_txPump3_STK_SIZE,
-//                    (void *)0,
-//                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
+   OSTaskCreateExt(Task_txPump3,
+				(void *)0,
+					(OS_STK *)&Task_txPumpStk3[APP_TASK_txPump3_STK_SIZE-1],
+					APP_TASK_txPump3_PRIO,
+					APP_TASK_txPump3_PRIO,
+					(OS_STK *)&Task_txPumpStk3[0],
+                    APP_TASK_txPump3_STK_SIZE,
+                    (void *)0,
+                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);
 
-//   OSTaskCreateExt(Task_serRX3,
-//				(void *)0,
-//					(OS_STK *)&Task_serRXStk3[APP_TASK_serRX3_STK_SIZE-1],
-//					APP_TASK_serRX3_PRIO,
-//					APP_TASK_serRX3_PRIO,
-//					(OS_STK *)&Task_serRXStk3[0],
-//                    APP_TASK_serRX3_STK_SIZE,
-//                    (void *)0,
-//                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);												
+   OSTaskCreateExt(Task_serRX3,
+				(void *)0,
+					(OS_STK *)&Task_serRXStk3[APP_TASK_serRX3_STK_SIZE-1],
+					APP_TASK_serRX3_PRIO,
+					APP_TASK_serRX3_PRIO,
+					(OS_STK *)&Task_serRXStk3[0],
+                    APP_TASK_serRX3_STK_SIZE,
+                    (void *)0,
+                    OS_TASK_OPT_STK_CHK|OS_TASK_OPT_STK_CLR);												
 }
 
 extern volatile int xmiting1;
@@ -200,7 +198,6 @@ void Task_txPump1(void* p_arg)
 	INT8U err;
   while(1)
   {
-		SER_printf1("Task_txPump1 is running \n");
     if (xmiting1 != 1) {
       TxCounter = 0;
       while(circ_get1(&xmit_buf1, &data) == 0) {
@@ -228,7 +225,6 @@ void Task_txPump2(void* p_arg)
 	INT8U err;
   while(1)
   {
-		SER_printf1("Task_txPump2 is running \n");
     if (xmiting2 != 1) {
       TxCounter = 0;
       while(circ_get2(&xmit_buf2, &data) == 0) {
@@ -279,17 +275,28 @@ void Task_txPump3(void* p_arg)
 extern void parse_and_process(char *buf, pr p);
 char ser_buf[1024];
 
+void command_list(void)
+{
+	SER_printf1("Electronic Fence Command List: \r\n\r\n");
+	SER_printf1("1 - get bluetooth message \r\n\r\n");
+	SER_printf1("2 - get gprs message \r\n\r\n");
+	SER_printf1("3 - get can bus message \r\n\r\n");	
+	SER_printf1("4 - send gprs message \r\n\r\n");	
+	SER_printf1("5 - send can bus message \r\n\r\n");	
+}
+
+//debug
 void Task_serRX1(void* p_arg) {
   int dat;
   int col = 0;
-	SER_printf1("COMMAND>");
+	command_list();
   while (1) {
     dat = SER_getchar1();
     if (dat == '\r' || dat == '#' || dat == '\n') {
       ser_buf[col] = '\0';
       col = 0;
       if (strlen(ser_buf) > 0) parse_and_process(ser_buf, SER_printf1);
-				SER_printf1("COMMAND> ");
+				command_list();
 		} else {
       if (col < 1023)
         ser_buf[col++] = dat;
@@ -297,17 +304,19 @@ void Task_serRX1(void* p_arg) {
   }
 }
 
+//gprs message
 void Task_serRX2(void* p_arg) {
   int dat;
   int col = 0;
-  SER_printf2("COMMAND>");
   while (1) {
+		OSTimeDlyHMSM(0, 0, 0, 1000);
     dat = SER_getchar2();
-    if (dat == '\r' || dat == '#' || dat == '\n') {
+    if (dat == -1)
+			continue;
+		else if (dat == '\r' || dat == '#' || dat == '\n') {
       ser_buf[col] = '\0';
       col = 0;
       if (strlen(ser_buf) > 0) parse_and_process(ser_buf, SER_printf2);
-			SER_printf2("COMMAND> ");
 		} else {
       if (col < 1023)
         ser_buf[col++] = dat;
@@ -315,21 +324,23 @@ void Task_serRX2(void* p_arg) {
   }
 }
 
+//bluetooth message
 void Task_serRX3(void* p_arg) {
   int dat;
   int col = 0;
-  SER_printf3("COMMAND>");
   while (1) {
-    dat = SER_getchar3();
-    if (dat == '\r' || dat == '#' || dat == '\n') {
-      ser_buf[col] = '\0';
-      col = 0;
-      if (strlen(ser_buf) > 0) parse_and_process(ser_buf, SER_printf3);
-			SER_printf3("COMMAND> ");
+		OSTimeDlyHMSM(0, 0, 0, 1000);
+		dat = SER_getchar3();
+		if (dat == -1)
+			continue;
+		else if (dat == '\r' || dat == '#' || dat == '\n') {
+			ser_buf[col] = '\0';
+			col = 0;
+			if (strlen(ser_buf) > 0) parse_and_process(ser_buf, SER_printf3);
 		} else {
-      if (col < 1023)
-        ser_buf[col++] = dat;
-    }
+			if (col < 1023)
+				ser_buf[col++] = dat;
+		}
   }
 }
 
